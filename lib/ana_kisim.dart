@@ -2,15 +2,18 @@ import 'package:flutter/material.dart';
 import 'hizmetler_ekran.dart';
 import 'randevular_ekran.dart';
 import 'profil_ekran.dart';
+import 'log_ekrani.dart';
+import 'main.dart';
 
 class AnaKisim extends StatefulWidget {
-  const AnaKisim({super.key});
+  final String kullaniciRolu;
+
+  const AnaKisim({super.key, required this.kullaniciRolu});
 
   @override
   State<AnaKisim> createState() => _AnaKisimState();
 }
 
-// ignore: unused_field
 class _AnaKisimState extends State<AnaKisim> {
   int sec = 0;
 
@@ -44,12 +47,30 @@ class _AnaKisimState extends State<AnaKisim> {
               title: const Text("Hakkımızda"),
               onTap: () {},
             ),
+
+            if (widget.kullaniciRolu == 'yönetici')
+              ListTile(
+                leading: const Icon(Icons.history, color: Colors.blue),
+                title: const Text(" Tüm Sistem Geçmişi Log Kayıtları"),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const LogEkrani()),
+                  );
+                },
+              ),
             const Divider(),
             ListTile(
-              leading: const Icon(Icons.logout),
+              leading: const Icon(Icons.logout, color: Colors.redAccent),
               title: const Text("Çıkış Yap"),
               onTap: () {
                 Navigator.pop(context);
+
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => const LoginScreen()),
+                );
               },
             ),
           ],
@@ -66,7 +87,7 @@ class _AnaKisimState extends State<AnaKisim> {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: sec,
         selectedItemColor: Colors.pinkAccent,
-        onTap: (index) {
+        onTap: (index) async {
           debugPrint("[LOG] Sekme değiştirildi: $index");
           setState(() {
             sec = index;
