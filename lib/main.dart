@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-
+import 'package:flutter_kuafor/database_helper.dart';
 import 'ana_kisim.dart';
+import 'kayit_ol.dart';
 
 void main() {
   runApp(const KuaforrApp());
@@ -32,6 +33,8 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   bool _girilenSifre = true;
+  final TextEditingController girisBilgiControl = TextEditingController();
+  final TextEditingController sifreControl = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -55,9 +58,10 @@ class _LoginScreenState extends State<LoginScreen> {
                 color: Colors.pink,
               ),
               const SizedBox(height: 25),
-              const TextField(
+              TextField(
+                controller: girisBilgiControl,
                 keyboardType: TextInputType.emailAddress,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: "E-posta veya Telefon Numarası",
                   hintText: "Örn: 5xx... veya ornek@gmail.com",
                   prefixIcon: Icon(Icons.person_outline),
@@ -66,6 +70,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 15),
               TextField(
+                controller: sifreControl,
                 obscureText: _girilenSifre,
                 decoration: InputDecoration(
                   labelText: "Şifre",
@@ -86,12 +91,42 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 25),
               ElevatedButton(
-                onPressed: () {
-                  debugPrint("[LOG] Giriş başarılı, ana sayfaya giriliyor.");
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => const AnaKisim()),
+                onPressed: () async {
+                  String girilenDeger = girisBilgiControl.text;
+                  String sifre = sifreControl.text;
+                  debugPrint(
+                    "Giriş denemesi -> Yazilan: $girilenDeger, Şifre: $sifre",
                   );
+                  var db = DatabaseHelper();
+                  var kullanicilar = await db.verileriGetir('kullanicilar');
+
+                  bool buldunMu = false;
+                  String? kullaniciRolu;
+
+                  for (var x in kullanicilar) {
+                    if ((x['ePosta'] == girilenDeger ||
+                            x['telefonNo'] == girilenDeger) &&
+                        x['sifre'] == sifre) {
+                      buldunMu = true;
+                      kullaniciRolu = x['rol'];
+                      break;
+                    }
+                  }
+                  if (buldunMu) {
+                    var db = DatabaseHelper();
+                    await db.logKaydet("başarılı giriş", girilenDeger);
+                    debugPrint("[LOG] Giriş başarılı Rol: $kullaniciRolu");
+                    if (!mounted) return;
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            AnaKisim(kullaniciRolu: kullaniciRolu ?? 'müşteri'),
+                      ),
+                    );
+                  } else {
+                    debugPrint("[LOG] kullanıcı yok veya şifre hatalı!");
+                  }
                 },
                 child: const Text("Giriş Yap"),
               ),
@@ -107,7 +142,14 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 10),
               TextButton(
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const KayitOlScreen(),
+                    ),
+                  );
+                },
                 child: const Text("Hesabınız yok mu? Üye Olun."),
               ),
             ],
