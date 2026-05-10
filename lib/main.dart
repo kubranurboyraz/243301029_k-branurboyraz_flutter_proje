@@ -120,8 +120,10 @@ class _LoginScreenState extends State<LoginScreen> {
                     Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
-                        builder: (context) =>
-                            AnaKisim(kullaniciRolu: kullaniciRolu ?? 'müşteri'),
+                        builder: (context) => AnaKisim(
+                          kullaniciRolu: kullaniciRolu ?? 'müşteri',
+                          kullaniciTelNo: girilenDeger,
+                        ),
                       ),
                     );
                   } else {

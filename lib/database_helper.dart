@@ -102,4 +102,17 @@ class DatabaseHelper {
       'tarih': DateTime.now().toString(),
     });
   }
+
+  Future<Map<String, dynamic>?> kullanicibulGetir(String telNo) async {
+    final db = await database;
+    List<Map<String, dynamic>> sonuc = await db.query(
+      'kullanicilar',
+      where: 'telefonNo = ?',
+      whereArgs: [telNo],
+    );
+    if (sonuc.isNotEmpty) {
+      return sonuc.first;
+    }
+    return null;
+  }
 }
