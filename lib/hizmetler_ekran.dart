@@ -20,12 +20,12 @@ class HizmetlerEkran extends StatelessWidget {
             {"ad": "Gelin Saç ve Makyaj", "fiyat": 6000.0},
           ]),
 
-          kategoriler(context, "Temel Saç Hizmetlerimiz", [
+          kategoriler(context, "Genel Bakım Hizmetlerimiz", [
             {"ad": "Makyaj", "fiyat": 500.0},
             {"ad": "Manikür & Pedikür", "fiyat": 1500.0},
             {"ad": "Kaş & Bıyık", "fiyat": 200.0},
           ]),
-          kategoriler(context, "Temel Saç Hizmetlerimiz", [
+          kategoriler(context, "Ek hizmetlerimiz", [
             {"ad": "Protez & Kaynak Saç", "fiyat": 4000.0},
             {"ad": "Evde Kuaför Hizmeti", "fiyat": 1500.0},
           ]),
