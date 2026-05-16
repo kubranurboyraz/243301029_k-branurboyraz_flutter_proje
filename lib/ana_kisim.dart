@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_kuafor/database_helper.dart';
 import 'hizmetler_ekran.dart';
-import 'randevular_ekran.dart';
 import 'profil_ekran.dart';
 import 'log_ekrani.dart';
 import 'main.dart';
+import 'randevularim_ekran.dart';
+import 'ayarlar_ekran.dart';
 
 class AnaKisim extends StatefulWidget {
   final String kullaniciRolu;
@@ -28,8 +29,11 @@ class _AnaKisimState extends State<AnaKisim> {
   void initState() {
     super.initState();
     _sayfalar = [
-      const HizmetlerEkran(),
-      const RandevularEkran(),
+      HizmetlerEkran(kullaniciTelNo: widget.kullaniciTelNo),
+      RandevularimEkran(
+        kullaniciTelNo: widget.kullaniciTelNo,
+        kullaniciRolu: widget.kullaniciRolu,
+      ),
       ProfilEkran(kullaniciTelNo: widget.kullaniciTelNo),
     ];
   }
@@ -37,6 +41,7 @@ class _AnaKisimState extends State<AnaKisim> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      body: _sayfalar[sec],
       drawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,
@@ -51,7 +56,16 @@ class _AnaKisimState extends State<AnaKisim> {
             ListTile(
               leading: const Icon(Icons.settings),
               title: const Text("Ayarlar"),
-              onTap: () {},
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        AyarlarEkran(kullaniciTelNo: widget.kullaniciTelNo),
+                  ),
+                );
+              },
             ),
             ListTile(
               leading: const Icon(Icons.info_outline),
@@ -121,8 +135,6 @@ class _AnaKisimState extends State<AnaKisim> {
         foregroundColor: Colors.white,
       ),
 
-      body: _sayfalar[sec],
-
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: sec,
         selectedItemColor: Colors.pinkAccent,
@@ -130,6 +142,14 @@ class _AnaKisimState extends State<AnaKisim> {
           debugPrint("[LOG] Sekme değiştirildi: $index");
           setState(() {
             sec = index;
+            _sayfalar = [
+              HizmetlerEkran(kullaniciTelNo: widget.kullaniciTelNo),
+              RandevularimEkran(
+                kullaniciTelNo: widget.kullaniciTelNo,
+                kullaniciRolu: widget.kullaniciRolu,
+              ),
+              ProfilEkran(kullaniciTelNo: widget.kullaniciTelNo),
+            ];
           });
         },
         items: const [

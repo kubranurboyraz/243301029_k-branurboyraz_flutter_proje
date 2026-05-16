@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_kuafor/randevular_ekran.dart';
 
 class HizmetlerEkran extends StatelessWidget {
-  const HizmetlerEkran({super.key});
+  final String kullaniciTelNo;
+  const HizmetlerEkran({super.key, required this.kullaniciTelNo});
 
   @override
   Widget build(BuildContext context) {
@@ -9,22 +11,23 @@ class HizmetlerEkran extends StatelessWidget {
       child: Column(
         children: [
           kategoriler(context, "Temel Saç Hizmetlerimiz", [
-            "Saç Kesimi",
-            "Saç Boyama",
-            "Şekillendirme",
-            "Saç Bakım",
+            {"ad": "Saç Kesim", "fiyat": 500.0},
+            {"ad": "Saç Boyama", "fiyat": 2000.0},
+            {"ad": "Şekillendirme", "fiyat": 400.0},
+            {"ad": "Saç Bakım", "fiyat": 1500.0},
           ]),
           kategoriler(context, "Özel Gün Hizmetlerimiz", [
-            "Gelin Saç ve Makyaj",
+            {"ad": "Gelin Saç ve Makyaj", "fiyat": 6000.0},
           ]),
-          kategoriler(context, "Güzellik ve Bakım Hizmetlerimiz", [
-            "Makyaj",
-            "Manikür & Pedikür",
-            "Kaş & Bıyık",
+
+          kategoriler(context, "Temel Saç Hizmetlerimiz", [
+            {"ad": "Makyaj", "fiyat": 500.0},
+            {"ad": "Manikür & Pedikür", "fiyat": 1500.0},
+            {"ad": "Kaş & Bıyık", "fiyat": 200.0},
           ]),
-          kategoriler(context, "Ek Hizmetlerimiz", [
-            "Protez & Kaynak Saç",
-            "Evde Kuaför Hizmeti",
+          kategoriler(context, "Temel Saç Hizmetlerimiz", [
+            {"ad": "Protez & Kaynak Saç", "fiyat": 4000.0},
+            {"ad": "Evde Kuaför Hizmeti", "fiyat": 1500.0},
           ]),
         ],
       ),
@@ -34,7 +37,7 @@ class HizmetlerEkran extends StatelessWidget {
   Widget kategoriler(
     BuildContext context,
     String basliklar,
-    List<String> altHizmetler,
+    List<Map<String, dynamic>> altHizmetler,
   ) {
     return Card(
       elevation: 4,
@@ -57,13 +60,30 @@ class HizmetlerEkran extends StatelessWidget {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: ListTile(
-                  title: Text(hizmet),
+                  title: Text(hizmet['ad']),
+                  subtitle: Text(
+                    "${hizmet['fiyat']} TL",
+                    style: const TextStyle(
+                      color: Colors.pink,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                   trailing: ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color.fromARGB(255, 225, 175, 192),
                     ),
                     onPressed: () {
                       debugPrint("[LOG] $hizmet için randevu alınıyor.");
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => RandevularEkran(
+                            secilenHizmet: hizmet['ad'],
+                            kullaniciTelNo: kullaniciTelNo,
+                            fiyat: hizmet['fiyat'],
+                          ),
+                        ),
+                      );
                     },
                     child: const Text(
                       "Randevu Al",

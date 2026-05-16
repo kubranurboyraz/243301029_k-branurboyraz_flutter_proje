@@ -1,9 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_kuafor/database_helper.dart';
+import 'package:flutter_kuafor/sifreUnutEkran.dart';
 import 'ana_kisim.dart';
 import 'kayit_ol.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'database_helper.dart';
 
-void main() {
+String? sonGirenRol;
+String? sonGirenTel;
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   runApp(const KuaforrApp());
 }
 
@@ -15,11 +23,10 @@ class KuaforrApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        primaryColor: const Color.fromARGB(255, 184, 95, 125),
+        primaryColor: const Color.fromARGB(255, 205, 96, 132),
         brightness: Brightness.light,
       ),
-
-      home: const LoginScreen(),
+      home: const AuthWrapper(),
     );
   }
 }
@@ -63,7 +70,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 keyboardType: TextInputType.emailAddress,
                 decoration: const InputDecoration(
                   labelText: "E-posta veya Telefon Numarası",
-                  hintText: "Örn: 5xx... veya ornek@gmail.com",
+                  hintText: "Örn: 05xx... veya ornek@gmail.com",
                   prefixIcon: Icon(Icons.person_outline),
                   border: OutlineInputBorder(),
                 ),
@@ -92,50 +99,86 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: 25),
               ElevatedButton(
                 onPressed: () async {
-                  String girilenDeger = girisBilgiControl.text;
-                  String sifre = sifreControl.text;
-                  debugPrint(
-                    "Giriş denemesi -> Yazilan: $girilenDeger, Şifre: $sifre",
-                  );
-                  var db = DatabaseHelper();
-                  var kullanicilar = await db.verileriGetir('kullanicilar');
+                  String girilenDeger = girisBilgiControl.text.trim();
+                  String sifre = sifreControl.text.trim();
 
-                  bool buldunMu = false;
-                  String? kullaniciRolu;
-
-                  for (var x in kullanicilar) {
-                    if ((x['ePosta'] == girilenDeger ||
-                            x['telefonNo'] == girilenDeger) &&
-                        x['sifre'] == sifre) {
-                      buldunMu = true;
-                      kullaniciRolu = x['rol'];
-                      break;
-                    }
+                  if (girilenDeger.isEmpty || sifre.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text("Lütfen tüm alanları doldurun!"),
+                      ),
+                    );
+                    return;
                   }
-                  if (buldunMu) {
+
+                  try {
                     var db = DatabaseHelper();
+
+                    var kullaniciVerisi = await db.kullaniciGirisBilgisiGetir(
+                      girilenDeger,
+                    );
+
+                    if (kullaniciVerisi == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("Kullanıcı bulunamadı!")),
+                      );
+                      return;
+                    }
+
+                    if (kullaniciVerisi['sifre'] != sifre) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("Şifre yanlış!")),
+                      );
+                      return;
+                    }
+
+                    String rol = kullaniciVerisi['rol'] ?? 'müşteri';
+                    String telNo =
+                        kullaniciVerisi['telefonNo'] ?? 'Telefon Yok';
+
+                    String gercekEmail = kullaniciVerisi['ePosta'] ?? '';
+
+                    try {
+                      await FirebaseAuth.instance.signInWithEmailAndPassword(
+                        email: gercekEmail,
+                        password: sifre,
+                      );
+                    } catch (firebaseHata) {
+                      print("Firebase giriş hatası: $firebaseHata");
+                    }
+
                     await db.logKaydet("başarılı giriş", girilenDeger);
-                    debugPrint("[LOG] Giriş başarılı Rol: $kullaniciRolu");
-                    if (!mounted) return;
+
+                    sonGirenRol = rol;
+                    sonGirenTel = telNo;
+
                     Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => AnaKisim(
-                          kullaniciRolu: kullaniciRolu ?? 'müşteri',
-                          kullaniciTelNo: girilenDeger,
-                        ),
+                        builder: (context) =>
+                            AnaKisim(kullaniciRolu: rol, kullaniciTelNo: telNo),
                       ),
                     );
-                  } else {
-                    debugPrint("[LOG] kullanıcı yok veya şifre hatalı!");
+                  } catch (e) {
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(SnackBar(content: Text("Hata oluştu: $e")));
                   }
                 },
                 child: const Text("Giriş Yap"),
               ),
+
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const SifremiUnuttumEkran(),
+                      ),
+                    );
+                  },
                   child: const Text(
                     "Şifremi Unuttum",
                     style: TextStyle(color: Colors.blue, fontSize: 13),
@@ -158,6 +201,58 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class AuthWrapper extends StatelessWidget {
+  const AuthWrapper({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator(color: Colors.pink)),
+          );
+        }
+        if (snapshot.hasData && snapshot.data != null) {
+          final firebaseUser = snapshot.data!;
+
+          return FutureBuilder<Map<String, dynamic>?>(
+            future: DatabaseHelper().kullaniciGirisBilgisiGetir(
+              firebaseUser.email,
+            ),
+
+            builder: (context, dbSnapshot) {
+              if (dbSnapshot.connectionState == ConnectionState.waiting) {
+                return const Scaffold(
+                  body: Center(
+                    child: CircularProgressIndicator(color: Colors.pink),
+                  ),
+                );
+              }
+              final kullanici = dbSnapshot.data;
+
+              if (kullanici == null) {
+                FirebaseAuth.instance.signOut();
+
+                return const LoginScreen();
+              }
+
+              String rol = kullanici['rol'] ?? 'müşteri';
+
+              String telNo = kullanici['telefonNo'] ?? '';
+
+              return AnaKisim(kullaniciRolu: rol, kullaniciTelNo: telNo);
+            },
+          );
+        }
+
+        return const LoginScreen();
+      },
     );
   }
 }

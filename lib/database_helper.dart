@@ -64,6 +64,8 @@ class DatabaseHelper {
         secilenHizmet TEXT,
         tarih TEXT,
         saat TEXT,
+        tutar REAL,
+        odemeDurum INTEGER,
         FOREIGN KEY (kullaniciId) REFERENCES kullanicilar (id)
       )
     ''');
@@ -103,16 +105,92 @@ class DatabaseHelper {
     });
   }
 
-  Future<Map<String, dynamic>?> kullanicibulGetir(String telNo) async {
+  Future<Map<String, dynamic>?> kullanicibulGetir(String? telNo) async {
+    if (telNo == null || telNo.isEmpty) return null;
+
     final db = await database;
+    String yeniTel = telNo;
+
+    if (yeniTel.startsWith('+90')) {
+      yeniTel = '0' + yeniTel.substring(3);
+    } else if (!yeniTel.startsWith('0') && yeniTel.length == 10) {
+      yeniTel = '0' + yeniTel;
+    }
+
     List<Map<String, dynamic>> sonuc = await db.query(
       'kullanicilar',
       where: 'telefonNo = ?',
-      whereArgs: [telNo],
+      whereArgs: [yeniTel],
     );
     if (sonuc.isNotEmpty) {
       return sonuc.first;
     }
     return null;
+  }
+
+  Future<Map<String, dynamic>?> kullaniciGirisBilgisiGetir(
+    String? girdi,
+  ) async {
+    if (girdi == null || girdi.isEmpty) return null;
+
+    final db = await database;
+
+    List<Map<String, dynamic>> sonuc = await db.query(
+      'kullanicilar',
+      where: 'telefonNo = ? OR ePosta = ?',
+      whereArgs: [girdi, girdi],
+    );
+
+    if (sonuc.isNotEmpty) {
+      return sonuc.first;
+    }
+    return null;
+  }
+
+  Future<int> randevuyuKaydet(Map<String, dynamic> randevu) async {
+    final db = await database;
+    return await db.insert('randevular', randevu);
+  }
+
+  Future<List<Map<String, dynamic>>> kullaniciRandevulariGetir(
+    int kullaniciId,
+  ) async {
+    final db = await database;
+    return await db.query(
+      'randevular',
+      where: 'kullaniciId=?',
+      whereArgs: [kullaniciId],
+      orderBy: 'id DESC',
+    );
+  }
+
+  Future<int> randevuSil(int id) async {
+    final db = await database;
+    return await db.delete('randevular', where: 'id = ?', whereArgs: [id]);
+  }
+
+  Future<List<Map<String, dynamic>>> tumRandevulariGetir() async {
+    final db = await database;
+    return await db.query('randevular', orderBy: 'id DESC');
+  }
+
+  Future<int> odemeDurumGuncelle(int randevuID) async {
+    final db = await database;
+    return await db.update(
+      'randevular',
+      {'odemeDurum': 1},
+      where: 'id = ?',
+      whereArgs: [randevuID],
+    );
+  }
+
+  Future<int> sifreUnutGuncelle(String telNo, String yeniSifre) async {
+    final db = await database;
+    return await db.update(
+      'kullanicilar',
+      {'sifre': yeniSifre},
+      where: 'telefonNo = ?',
+      whereArgs: [telNo],
+    );
   }
 }

@@ -10,17 +10,19 @@ class ProfilEkran extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<Map<String, dynamic>?>(
-      future: DatabaseHelper().kullanicibulGetir(kullaniciTelNo),
+      future: DatabaseHelper().kullaniciGirisBilgisiGetir(kullaniciTelNo),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
 
         var kullanici = snapshot.data;
-        String adSoyad = kullanici != null
+
+        String adSoyad = kullanici != null && kullanici['kullaniciAdi'] != null
             ? kullanici['kullaniciAdi']
-            : "Kullanıcı";
-        String ePosta = kullanici != null
+            : "Kullanıcı Bulunamadı";
+
+        String ePosta = kullanici != null && kullanici['ePosta'] != null
             ? kullanici['ePosta']
             : "E-posta bulunamadı";
 
@@ -104,10 +106,7 @@ class ProfilEkran extends StatelessWidget {
         leading: Icon(ikon, color: const Color.fromARGB(255, 229, 123, 158)),
         title: Text(
           baslik,
-          style: const TextStyle(
-            fontSize: 14,
-            color: Color.fromARGB(255, 250, 247, 247),
-          ),
+          style: const TextStyle(fontSize: 14, color: Colors.black54),
         ),
         subtitle: Text(
           icerik,

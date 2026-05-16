@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "552122562905",
+    "project_id": "kubra-kuafor",
+    "storage_bucket": "kubra-kuafor.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:552122562905:android:c8c89b60b167ddbb66f448",
+        "android_client_info": {
+          "package_name": "com.example.flutter_kuafor"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBOub1t2l0Q1NENJSJbTfGx85axsJReuMY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

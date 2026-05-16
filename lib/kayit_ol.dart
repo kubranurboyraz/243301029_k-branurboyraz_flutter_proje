@@ -117,8 +117,10 @@ class _KayitOlScreenState extends State<KayitOlScreen> {
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
-                      builder: (context) =>
-                          const AnaKisim(kullaniciRolu: 'müşteri'),
+                      builder: (context) => AnaKisim(
+                        kullaniciRolu: 'müşteri',
+                        kullaniciTelNo: telNoControl.text,
+                      ),
                     ),
                   );
                 }
